@@ -5,12 +5,7 @@ import { randomBytes, scryptSync } from 'node:crypto';
 async function hiddenInput(label) {
   stdout.write(label);
   if (!stdin.isTTY || typeof stdin.setRawMode !== 'function') {
-    const input = createInterface({ input: stdin, output: stdout });
-    try {
-      return await input.question('');
-    } finally {
-      input.close();
-    }
+    throw new Error('Run this command in an interactive terminal so the password is not echoed.');
   }
 
   stdin.setRawMode(true);
@@ -26,14 +21,16 @@ async function hiddenInput(label) {
       if (error) reject(error);
       else resolve(value);
     };
-    const onData = (key) => {
-      if (key === '\u0003') return finish(new Error('Setup cancelled.'));
-      if (key === '\r' || key === '\n') return finish();
-      if (key === '\u007f' || key === '\b') {
-        value = value.slice(0, -1);
-        return;
+    const onData = (chunk) => {
+      for (const key of chunk) {
+        if (key === '\u0003') return finish(new Error('Setup cancelled.'));
+        if (key === '\r' || key === '\n') return finish();
+        if (key === '\u007f' || key === '\b') {
+          value = value.slice(0, -1);
+          continue;
+        }
+        if (key >= ' ') value += key;
       }
-      if (key >= ' ' && key !== '\u007f') value += key;
     };
     stdin.on('data', onData);
   });

@@ -36,7 +36,15 @@ unset SUPABASE_SERVICE_ROLE_KEY
 
 The script prompts for the owner email and display name, then asks for the password without echoing it in an interactive terminal. Use a unique password with at least 12 characters. It stores a salted scrypt password hash, does not create a public registration route, and refuses duplicate email addresses. Never put the password or service-role key in source control, a `NEXT_PUBLIC_` variable, or a command-line argument.
 
-If the setup script cannot use a TTY, provide the password through a protected interactive environment rather than a shell command that records it in history.
+Run the setup script in an interactive terminal; it refuses non-interactive input so the password cannot be echoed.
+
+To reset the password for an existing owner, make the production Supabase URL and service-role key available in a trusted local terminal, then run:
+
+```sh
+npm run admin:reset-password
+```
+
+Enter the existing owner's email and a new password of at least 12 characters when prompted. The password is not echoed. This updates only the matching account in the Supabase project supplied to the command. Do not set an `ADMIN_PASSWORD` variable in Vercel: the app does not read one, and owner password hashes are stored in Supabase.
 
 ## 4. Sign in and operate the dashboard
 
@@ -61,6 +69,7 @@ Every admin mutation checks the signed session and same-origin request. Sessions
 ## Current limitations to understand
 
 - External sign-in, storage upload, and publish behavior require a configured Supabase project and owner account; those cloud operations cannot be exercised without the project credentials.
+- A `503` message saying sign-in is unavailable indicates a server configuration, database schema, or Supabase connectivity failure, not a rejected password. Check Vercel function logs for the `Admin login failed.` entry. Ensure `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `ADMIN_SESSION_SECRET` (at least 32 bytes) are set for the Production environment, apply the migration to that same Supabase project, and redeploy after environment changes. Never share the service-role key or full environment values.
 - Existing checked-in product photographs remain in `public/products`; new uploads go to Supabase Storage. Existing model/worn photographs remain in the repository but are intentionally excluded from the public product catalogue and About section. The admin upload guidance restricts newly managed imagery to product-only photographs; image-content screening is a human review, not automated image recognition.
 - Reviews in private Google Forms/Sheets remain private and are never synchronized automatically.
 - Orders still use Google Forms; there are no sales or revenue analytics.
