@@ -1,0 +1,22 @@
+.hero-photo img,
+.product-photo img,
+.story-main img,
+.modal-photo img,
+.thumb img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hero-photo img {
+  object-fit: cover;
+}
+
+@media (max-width: 430px) {
+  .story-stamp {
+    right: -4px;
+  }
+}
